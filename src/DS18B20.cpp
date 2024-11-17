@@ -144,6 +144,29 @@ void DS18B20::getAddress(uint8_t address[]) {
     memcpy(address, selectedAddress, 8);
 }
 
+static uint64_t htonll(uint64_t hostlonglong) {
+    #if ( __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ )
+        return __builtin_bswap64(hostlonglong);
+    #elif ( __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ )
+        return hostlonglong;
+    #else
+        #error "integer byte order could not be determined!" 
+    #endif
+}
+        
+String DS18B20::getAddress(bool showCRC) {
+    uint64_t addr = *(uint64_t*)selectedAddress;
+    addr = htonll(addr);
+    uint8_t tpe = (addr >> 56) & 0xFF;
+    uint8_t crc = addr & 0xFF;
+    addr = (addr & 0x00FFFFFFFFFFFF00) >> 8;
+    char tmp[32]; 
+    snprintf(tmp,sizeof(tmp),"%02X-%012llX",tpe, addr);
+    if (showCRC) 
+       snprintf(tmp+14,sizeof(tmp)-14,"-%02X", crc);
+    return String(tmp);
+}           
+
 void DS18B20::doConversion() {
     sendCommand(SKIP_ROM, CONVERT_T, !globalPowerMode);
     delayForConversion(globalResolution, globalPowerMode);
