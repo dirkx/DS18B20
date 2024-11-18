@@ -49,8 +49,9 @@ void loop() {
   // not wait to read them out yet. 
   //
   st = millis();
-  while (ds.selectNext()) 
-    ds.startConversion();
+  ds.startConversion(); // starts the conversion on all devices
+
+  // In theory we can now do other stuff fr about 90.8 second
 
   // And then read them one by one. getTempC() will
   // check, and wait if needed, for the conversion to 
