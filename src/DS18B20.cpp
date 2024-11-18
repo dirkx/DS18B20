@@ -2,8 +2,8 @@
 
 DS18B20::DS18B20(uint8_t pin) :
     oneWire(OneWire(pin)),
-    numberOfDevices(0),
     globalResolution(0),
+    numberOfDevices(0),
     selectedResolution(0),
     selectedPowerMode(0)
 {
