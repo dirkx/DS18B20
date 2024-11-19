@@ -2,19 +2,29 @@
 #include <DS18B20.h>
 
 #define ONE_WIRE_PIN (2)
+#define ONE_WIRE_PIN (5)
 
 DS18B20 ds(ONE_WIRE_PIN);
 
 /* Demonstrate sequential measure/convert versus instructing all
  * sensors on a string to measure/convert in one go; and then 
  * read them out sequentially.
- *
- * Note: this requires the sensors to be powered.
- *
+ * 
  * The advantage of the latter is that it avoids taking (at 12 bits) around
  * 700 mSeconds for a whole measure/convert cycle (see [1], page 3
  * and Figure 2) for each readout. Instead; all DS18B20's all do
  * their conversion in parallel.
+ *
+ * Typical readout of multiple (e.g. over 3) sensors
+ * is around N x 0.8 seconds. This is largely spend
+ * in waiting for the AD/conversion cycle in the sensor.
+ * 
+ * It is possible to start the measurement and AD/conversion
+ * cycle; but not read it out right away. Then wait for these
+ * to complete - and do a fast reading past. The time then
+ * becomes 0.7 + N * 0.04 or there about.
+ *
+ * Note: this requires the sensors to be powered.
  *
  * Typical output:
  *  
@@ -46,6 +56,11 @@ void loop() {
   //
   std::vector<float> seq, par;
 
+  // Read each sensor out one by one; i.e.
+  // start the measurement and A/D conversion,
+  // wait for it to complete and then read 
+  // it out & convert.
+  //
   st = millis();
   while (ds.selectNext())
     seq.push_back(ds.getTempC());
@@ -57,10 +72,6 @@ void loop() {
   st = millis();
   ds.startConversion(); // will return immediately; call ds.doConversion() if you want it to wait for completion
 
-  // in theory we can do something else now for about 700 milliSeconds
-  // while each of the sensors goes through the moves (at 12 bits, see
-  // CONF_TIME_9/10/11/12_BIT defines for the actual expected delay.
-  
   // And then read them one by one. getTempC() will
   // check, and wait if needed, for the conversion to
   // complete - so the very first one is likely to be
@@ -71,7 +82,6 @@ void loop() {
   while (ds.selectNext())
     par.push_back(ds.getTempC(false));
   dt_par = millis() - st;
-
 
   Serial.print("Sequential:");
   for (auto temp : seq) {
@@ -106,4 +116,3 @@ void loop() {
   delay(1000);
   Serial.print("\n--------\n\n");
 };
-
