@@ -49,8 +49,8 @@ class DS18B20 {
         uint8_t getPowerMode();
         uint8_t getFamilyCode();
         void getAddress(uint8_t address[]);
-        void doConversion();
-        void startConversion();
+        void startConversion(); // Start a conversion
+        void doConversion(); // Start a conversion and wait for the result
         uint8_t getNumberOfDevices();
         uint8_t hasAlarm();
         void setAlarms(int8_t alarmLow, int8_t alarmHigh);
